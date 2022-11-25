@@ -1,0 +1,106 @@
+
+打开配置模式
+enable
+configure terminal
+
+#查看当前partition情况
+show ib partition
+
+#修改default partition，注意，修改default partition要谨慎，交换机会每步要求你再三确认
+ib partition default
+
+#将所有主机权限设为limited
+member all-switches type full
+member all-cas type limited
+
+#通过ibstat找到对应设备的guid，改成冒号分隔格式添加设备
+#ibstat
+CA 'mlx5_0'
+        CA type: MT4123
+        Number of ports: 1
+        Firmware version: 20.34.1002
+        Hardware version: 0
+        Node GUID: 0x1c34da0300552f50
+        System image GUID: 0x1c34da0300552f50
+        Port 1:
+                State: Active
+                Physical state: LinkUp
+                Rate: 100
+                Base lid: 7
+                LMC: 0
+                SM lid: 2
+                Capability mask: 0xa651e848
+                Port GUID: 0x1c34da0300552f50    ##将这个号改成冒号分隔，来将端口添加到partition
+                Link layer: InfiniBand
+
+
+#将两个计算节点设为limited member
+member 1c:34:da:03:00:55:2f:50 type limited
+member 1c:34:da:03:00:55:2f:d9 type limited
+
+#将3个存储节点设为full member
+member 1c:34:da:03:00:5d:3d:05 type full
+member 1c:34:da:03:00:5d:3d:ad type full
+member 1c:34:da:03:00:5d:3d:dd type full
+
+#可以通过如下方式删除
+no member 1c:34:da:03:00:55:2f:d8
+
+#退出当前partition view
+exit
+
+#配置第二个partition
+ib partition my-partition2
+#打开ipoib
+ipoib force
+
+#将之前partition limited的两个计算节点放入一个partition使之可以通信
+member 1c:34:da:03:00:55:2f:50 type full
+member 1c:34:da:03:00:55:2f:d9 type full
+
+
+#配成这样
+switch-541f32 [standalone: master] (config ib partition Default) # show ib partition
+
+Default:
+  PKey : 0x7FFF
+  ipoib: yes
+
+  members:
+    GUID='1C:34:DA:03:00:55:2F:50' member='limited'
+    GUID='1C:34:DA:03:00:55:2F:D9' member='limited'
+    GUID='1C:34:DA:03:00:5D:3D:05' member='full'
+    GUID='1C:34:DA:03:00:5D:3D:AD' member='full'
+    GUID='1C:34:DA:03:00:5D:3D:DD' member='full'
+    GUID='ALL_CAS' member='limited'
+    GUID='ALL_SWITCHES' member='full'
+
+my-partition2:
+  PKey : 0x7002
+  ipoib: yes
+
+  members:
+    GUID='1C:34:DA:03:00:55:2F:50' member='full'
+    GUID='1C:34:DA:03:00:55:2F:D9' member='full'
+switch-541f32 [standalone: master] (config ib partition Default) #
+
+#然后到每个计算节点
+#找到pkey
+grep -v 0000 -n  /sys/class/infiniband/mlx5_0/ports/1/pkeys/*
+#结果返回
+/sys/class/infiniband/mlx5_0/ports/1/pkeys/0:1:0x7fff
+/sys/class/infiniband/mlx5_0/ports/1/pkeys/2:1:0xf002
+
+#为f002 (0x7002 + 0x8000) 分配子接口
+echo 0xf002 > /sys/class/net/ib0/create_child
+#可以通过如下命令删除  echo 0xf002 > /sys/class/net/ib0/delete_child
+
+#为新加的子接口分配ip地址
+ifconfig ib1.f002 10.10.1.31/24 up
+
+
+#现在，所有的计算节点都可以访问存储节点，存储节点之间可以互相访问
+#计算节点分了一个partition，partition内所有计算节点可以通过子接口做ip互访，可以通过--pkey-index 2 来进行ib的业务
+#如果通过当前方式新加另一个计算节点partition，新的计算节点也依然可以和所有存储互访，但是新的计算节点partition内所有计算节点和之前的partition内的计算节点都是隔离的
+
+
