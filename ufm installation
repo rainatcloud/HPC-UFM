@@ -8,3 +8,6 @@ vi /etc/selinux/config
 #如果是双端口卡，需要修改这个文件，看看是否是用的ib0
 vi /opt/ufm/conf/gv.cfg
 
+访问：
+https://ipaddress/ufm
+
