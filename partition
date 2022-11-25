@@ -1,0 +1,16 @@
+
+
+
+#查询pkey及pkey的index
+grep -v 0000 -n /sys/class/infiniband/mlx5_1/ports/1/pkeys/*
+/sys/class/infiniband/mlx5_1/ports/1/pkeys/0:1:0x1234
+/sys/class/infiniband/mlx5_1/ports/1/pkeys/8:1:0xffff
+/sys/class/infiniband/mlx5_1/ports/1/pkeys/9:1:0xa234
+
+以上的pkey0x1234的index是0，0xffff的index是8，0xa234的index是9
+
+#加子接口
+echo 0xa234 > /sys/class/net/ib1/create_child
+
+#使用pkey发包
+ib_write_bw -d mlx5_1  --pkey_index=9
