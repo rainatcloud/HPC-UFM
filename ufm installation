@@ -1,0 +1,10 @@
+
+#close selinux
+vi /etc/selinux/config
+#设置SELINUX=disabled
+
+#必须给相应的ib端口先配置IP地址
+
+#如果是双端口卡，需要修改这个文件，看看是否是用的ib0
+vi /opt/ufm/conf/gv.cfg
+
