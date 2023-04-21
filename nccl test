@@ -61,10 +61,11 @@ ldconfig -v
 mpirun --allow-run-as-root --np 2 -H 172.21.10.41,172.21.10.21  -x NCCL_IB_HCA=mlx5_0:1,mlx5_1:1 -bind-to numa \
 -x NCCL_DEBUG=INFO -x CUDA_VISIBLE_DEVICES=1 ./build/all_reduce_perf -b 8 -e 8192M -f 2 -g 1
 
+#np数和节点数对应
 
 #########注意
 #1.一定要保证服务器之间有免密钥登录
-#2. 所有服务器都要安装OpenMPI, NCCL, Sharp
+#2. 所有服务器都要安装OpenMPI, NCCL, Sharp, nccl-test
 #3. 保证IB网络是通的，网卡号一致
 
 
