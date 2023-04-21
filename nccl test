@@ -7,6 +7,8 @@
 
 wget https://developer.download.nvidia.com/compute/cuda/12.1.1/local_installers/cuda_12.1.1_530.30.02_linux.run
 ./cuda_12.1.1_530.30.02_linux.run
+PATH=$PATH:/usr/local/cuda-12.1/bin
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-12.1/lib64
 
 #安装完cuda后，可以通过nvcc -V验证cuda工具安装成功
 #此外，先安装了ofed的话，nvdia-peermem.ko也会安装，参考如下目录（取决于不同内核版本，目录有所区别）
@@ -26,7 +28,7 @@ make install
 wget https://github.com/NVIDIA/nccl/archive/refs/heads/master.zip
 unzip master.zip
 cd nccl-master
-make -j src.build
+make -j8 src.build
 make install
 
 #安装NCCL test
@@ -35,7 +37,7 @@ unzip master.zip
 cd nccl-tests-master/
 
 #找到mpi的安装目录
-find . -name mpi.h
+find / -name mpi.h
 #我的返回值
 ./usr/mpi/gcc/openmpi-4.1.5a1/include/mpi.h
 
@@ -48,7 +50,7 @@ modprobe nvidia_peermem
 #运行简单单机测试
 ./all_reduce_perf -b 8 -e 8192M -f 2 -g 8
 
-#如果报找不到mpi的动态链接库的错误，执行如下命令
+#如果报找不到mpi的动态链接库的错误，检查是否有动态库，如果没有，下载安装openmpi，执行如下命令链接动态库
 vi /etc/ld.so.conf.d/mpi.conf
 写入 /usr/local/lib
 #然后运行
