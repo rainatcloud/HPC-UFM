@@ -1,0 +1,66 @@
+
+#安装OFED
+参见：https://network.nvidia.com/products/infiniband-drivers/linux/mlnx_ofed/
+步骤略
+
+#CUDA，选择runfile的本地安装
+
+wget https://developer.download.nvidia.com/compute/cuda/12.1.1/local_installers/cuda_12.1.1_530.30.02_linux.run
+./cuda_12.1.1_530.30.02_linux.run
+
+#安装完cuda后，可以通过nvcc -V验证cuda工具安装成功
+#此外，先安装了ofed的话，nvdia-peermem.ko也会安装，参考如下目录（取决于不同内核版本，目录有所区别）
+./usr/lib/modules/4.18.0-425.3.1.el8.x86_64/kernel/drivers/video/nvidia-peermem.ko
+
+#安装sharp plugin
+wget https://github.com/Mellanox/nccl-rdma-sharp-plugins/archive/refs/heads/master.zip
+unzip master.zip
+cd nccl-rdma-sharp-plugins-master
+./autogen.sh
+./configure --with-cuda=/usr/local/cuda ##CUDA 安装默认目录
+make
+make install
+#生成的库文件默认放在/usr/local/lib 下，确保NCCL在运行时能找到
+
+#安装NCCL
+wget https://github.com/NVIDIA/nccl/archive/refs/heads/master.zip
+unzip master.zip
+cd nccl-master
+make -j src.build
+make install
+
+#安装NCCL test
+wget https://github.com/NVIDIA/nccl-tests/archive/refs/heads/master.zip
+unzip master.zip
+cd nccl-tests-master/
+
+#找到mpi的安装目录
+find . -name mpi.h
+#我的返回值
+./usr/mpi/gcc/openmpi-4.1.5a1/include/mpi.h
+
+#编译nccl-test，用来测试下nccl
+make MPI=1 MPI_HOME=/usr/mpi/gcc/openmpi-4.1.5a1 CUDA_HOME=/usr/local/cuda NCCL_HOME=/root/yuxi/nccl-master/build
+
+#加载nv peermem
+modprobe nvidia_peermem
+
+#运行简单单机测试
+./all_reduce_perf -b 8 -e 8192M -f 2 -g 8
+
+#如果报找不到mpi的动态链接库的错误，执行如下命令
+vi /etc/ld.so.conf.d/mpi.conf
+写入 /usr/local/lib
+#然后运行
+ldconfig -v
+
+#多机运行，我每个服务器只有一个GPU
+
+mpirun --allow-run-as-root --np 2 -H 172.21.10.41,172.21.10.21  -x NCCL_IB_HCA=mlx5_0:1,mlx5_1:1 -bind-to numa \
+-x NCCL_DEBUG=INFO -x CUDA_VISIBLE_DEVICES=1 ./build/all_reduce_perf -b 8 -e 8192M -f 2 -g 1
+
+
+
+
+
+
