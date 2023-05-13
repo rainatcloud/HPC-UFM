@@ -1,0 +1,22 @@
+
+#准备软件
+1. 安装python
+https://www.python.org/downloads/
+
+2. CUDA
+https://developer.nvidia.com/cuda-tookit-archive
+通过nvidia-smi查询一下显卡支持的cuda版本
+
+3. 下载git
+https://git-scm.com/download
+
+4. 直接安装秋叶的sd整合包，:)
+使用教程：https://www.bilibili.com/read/cv22661198
+
+
+
+
+
+
+
+
