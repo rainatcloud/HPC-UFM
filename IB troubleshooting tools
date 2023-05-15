@@ -1,0 +1,61 @@
+
+#查看主机上的所有卡信息，包括主机信息
+# ibhosts
+Ca      : 0x1070fd0300af91b4 ports 1 "gpu1 mlx5_3"
+Ca      : 0xb8599f0300e06d00 ports 1 "Mellanox Technologies Aggregation Node"
+Ca      : 0xe8ebd30300066704 ports 1 "gpu1 mlx5_0"
+Ca      : 0x1c34da0300552f48 ports 1 "gpu1 mlx5_1"
+Ca      : 0xe8ebd30300065e14 ports 1 "gpu2 mlx5_3"
+Ca      : 0xe8ebd303000435ee ports 1 "gpu2 mlx5_0"
+Ca      : 0x1c34da0300552f50 ports 1 "gpu2 mlx5_1"
+Ca      : 0x248a070300a91622 ports 1 "ufm1-virtual-machine mlx5_0"
+Ca      : 0x7cfe900300b16778 ports 1 "Mellanox Technologies Aggregation Node"
+Ca      : 0x1c34da0300552fd9 ports 1 "MT4123 ConnectX6   Mellanox Technologies"
+Ca      : 0x1c34da0300552f39 ports 1 "MT4123 ConnectX6   Mellanox Technologies"
+Ca      : 0x98039b0300cc7124 ports 1 "98-F1-81-B8-1B-14 HCA-1"
+
+#查看交换机信息
+# ibswitches
+Switch  : 0xb8599f0300e06cf8 ports 81 "MF0;QM8700:MQM8700/U1" enhanced port 0 lid 14 lmc 0
+Switch  : 0x7cfe900300b16770 ports 37 "MF0;switch-541f32:MSB7800/U1" enhanced port 0 lid 2 lmc 0
+
+#查看包括交换机和主机的所有节点信息：
+]# ibnodes
+Ca      : 0x1070fd0300af91b4 ports 1 "gpu1 mlx5_3"
+Ca      : 0xb8599f0300e06d00 ports 1 "Mellanox Technologies Aggregation Node"
+Ca      : 0xe8ebd30300066704 ports 1 "gpu1 mlx5_0"
+Ca      : 0x1c34da0300552f48 ports 1 "gpu1 mlx5_1"
+Ca      : 0xe8ebd30300065e14 ports 1 "gpu2 mlx5_3"
+Ca      : 0xe8ebd303000435ee ports 1 "gpu2 mlx5_0"
+Ca      : 0x1c34da0300552f50 ports 1 "gpu2 mlx5_1"
+Ca      : 0x248a070300a91622 ports 1 "ufm1-virtual-machine mlx5_0"
+Ca      : 0x7cfe900300b16778 ports 1 "Mellanox Technologies Aggregation Node"
+Ca      : 0x1c34da0300552fd9 ports 1 "MT4123 ConnectX6   Mellanox Technologies"
+Ca      : 0x1c34da0300552f39 ports 1 "MT4123 ConnectX6   Mellanox Technologies"
+Ca      : 0x98039b0300cc7124 ports 1 "98-F1-81-B8-1B-14 HCA-1"
+Switch  : 0xb8599f0300e06cf8 ports 81 "MF0;QM8700:MQM8700/U1" enhanced port 0 lid 14 lmc 0
+Switch  : 0x7cfe900300b16770 ports 37 "MF0;switch-541f32:MSB7800/U1" enhanced port 0 lid 2 lmc 0
+
+#查看ufm或者sm的lid号和信息
+# sminfo
+sminfo: sm lid 19 sm guid 0x248a070300a91622, activity count 342917 priority 15 state 3 SMINFO_MASTER
+
+#查看链路信息命令，可以查看所有网卡的lid号：
+# iblinkinfo
+CA: gpu1 mlx5_3:
+      0x1070fd0300af91b4     15    1[  ] ==( 4X        53.125 Gbps Active/  LinkUp)==>      14   29[  ] "MF0;QM8700:MQM8700/U1" ( )
+CA: Mellanox Technologies Aggregation Node:
+      0xb8599f0300e06d00      1    1[  ] ==( 4X        53.125 Gbps Active/  LinkUp)==>      14   81[  ] "MF0;QM8700:MQM8700/U1" ( )
+CA: gpu1 mlx5_0:
+      0xe8ebd30300066704     16    1[  ] ==( 4X        53.125 Gbps Active/  LinkUp)==>      14   25[  ] "MF0;QM8700:MQM8700/U1" ( )
+CA: gpu1 mlx5_1:
+      0x1c34da0300552f48     13    1[  ] ==( 4X      25.78125 Gbps Active/  LinkUp)==>      14   21[  ] "MF0;QM8700:MQM8700/U1" ( Could be 53.125 Gbps)
+CA: gpu2 mlx5_3:
+      0xe8ebd30300065e14     18    1[  ] ==( 4X        53.125 Gbps Active/  LinkUp)==>      14   13[  ] "MF0;QM8700:MQM8700/U1" ( )
+CA: gpu2 mlx5_0:
+      0xe8ebd303000435ee     17    1[  ] ==( 4X        53.125 Gbps Active/  LinkUp)==>      14    9[  ] "MF0;QM8700:MQM8700/U1" ( )
+CA: gpu2 mlx5_1:
+      0x1c34da0300552f50      7    1[  ] ==( 4X      25.78125 Gbps Active/  LinkUp)==>      14    5[  ] "MF0;QM8700:MQM8700/U1" ( Could be 53.125 Gbps)
+CA: ufm1-virtual-machine mlx5_0:
+      0x248a070300a91622     19    1[  ] ==( 4X  10.0 Gbps (FDR10) Active/  LinkUp)==>       2    1[  ] "MF0;switch-541f32:MSB7800/U1" ( Could be 25.78125 Gbps)
+
