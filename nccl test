@@ -29,9 +29,17 @@ Server-2:  ib_write_bw -d <ib设备> <ip addr或hostname> -p 17273
        2) 确保两个主机的设备物理可通，在rail optimized优化组网的情况下，不通服务器间的mlx5_x号最好一样，用来测试同rail的组网
        3）无需为每个IB网卡分配ip地址，一个主机有一个ip地址即可
 
-2. 安装UFM
+############注意###########
+虚机和容器环境下，虚机和容器里也需要安装OFED驱动
+###########################
+
+2. 启动SM
+a)小集群启动OpenSM
+opensm -c /etc/opensm/opensm.conf
+/etc/init.d/opensmd start
+
+b)大集群安装和启动UFM（略）
 需要单独服务器安装UFM节点（主备）
-或者小集群启动OpenSM
 
 3. CUDA，这里选择的是runfile的本地安装
 
