@@ -59,3 +59,9 @@ CA: gpu2 mlx5_1:
 CA: ufm1-virtual-machine mlx5_0:
       0x248a070300a91622     19    1[  ] ==( 4X  10.0 Gbps (FDR10) Active/  LinkUp)==>       2    1[  ] "MF0;switch-541f32:MSB7800/U1" ( Could be 25.78125 Gbps)
 
+#最全的ib问题检查工具
+# ibdiagnet
+#注意：ibdiagnet显示的error如果是fec并且被corrected，那么无需理会
+
+
+
