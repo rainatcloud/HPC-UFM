@@ -1,0 +1,95 @@
+
+/usr/lib/udev/rules.d/60-rdma-persistent-naming.rules
+/etc/udev/rules.d/
+
+
+
+RDMA device name is unique identifier used by VERBS to access the device. When running ibv_devinfo, ibstat or other VERBS based application be default if shown as mlx5_0, mlx5_1 and so on.  Each device can be physical of virtual function. The number of devices can vary and depends on the system configuration.
+
+In general, the RDMA device’s name stays the same between the reboots, however, if persistence is critical, for example when running MPI jobs and same device must be used on the command line, or when using SR-IOV and need consistency between RDMA names and PCI devices, it might be necessary to use UDEV to guarantee same layout between the reboots.
+
+RDMA device name can be assigned using multiple distributes. Most important probably are
+
+PCI bus/device/function, like 0000:81:00.1
+GUID, for example, 248a:0703:009c:01a6
+
+For the other distributes, udevadm  command might be used to see all of them
+
+# udevadm info -a /sys/class/infiniband/mlx5_0
+
+…
+  looking at device '/devices/pci0000:80/0000:80:03.0/0000:81:00.0/infiniband/mlx5_0':
+    KERNEL=="mlx5_0"
+    SUBSYSTEM=="infiniband"
+    DRIVER==""
+    ATTR{board_id}=="MT_0000000009"
+    ATTR{fw_pages}=="33631"
+    ATTR{fw_ver}=="16.31.1014"
+    ATTR{hca_type}=="MT4121"
+    ATTR{hw_rev}=="0"
+    ATTR{node_desc}=="tuki4 HCA-1"
+    ATTR{node_guid}=="248a:0703:009c:01a6"
+    ATTR{node_type}=="1: CA"
+    ATTR{reg_pages}=="0"
+…
+There is much more output from the command. Be sure to check it as well.
+
+To implement the change, follow the procedure bellow. Here we set device with default name “mlx5_0” located on PCI BDF 0000:81:00.0 to be “mpi_0”
+
+Copy the file /usr/lib/udev/rules.d/60-rdma-persistent-naming.rules to /etc/udev/rules.d directory
+
+#cp /usr/lib/udev/rules.d/60-rdma-persistent-naming.rules  /etc/udev/rules.d/
+
+Using, for example PCI attribute, assign a desired name to a device by adding or editing existing line:
+
+ACTION=="add", KERNELS=="0000:81:00.0", SUBSYSTEM=="infiniband", PROGRAM="rdma_rename %k NAME_FIXED mpi_0"
+
+
+Reload udev database
+
+#udevamd control -R
+
+Restart openibd service or restart the host
+Validate the change
+
+#ibv_devinfo |grep hca
+
+Or use udevamd to review new device
+
+#udevadm info -a /sys/class/infiniband/mpi_0 | head -n 10
+
+
+[root@tuki4 ~]# udevadm info -a /sys/class/infiniband/mpi_0 | head -n 20
+
+…
+
+  looking at device '/devices/pci0000:80/0000:80:03.0/0000:81:00.0/infiniband/mpi_0':
+    KERNEL=="mpi_0"
+    SUBSYSTEM=="infiniband"
+    DRIVER==""
+    ATTR{board_id}=="MT_0000000009"
+    ATTR{fw_pages}=="33661"
+    ATTR{fw_ver}=="16.31.1014"
+    ATTR{hca_type}=="MT4121"
+    ATTR{hw_rev}=="0"
+    ATTR{node_desc}=="tuki4 HCA-2"
+    ATTR{node_guid}=="248a:0703:009c:01a6"
+    ATTR{node_type}=="1: CA"
+    ATTR{reg_pages}=="0"
+
+…
+
+
+The other to change name is to use /opt/mellanox/iproute2/sbin/rdma binary to set it manually. It can be used via bash script, for example. Be sure that nothing is using the device during the rename process.
+
+In the command line bellow, device mpi_0 renamed back to mlx5_0
+
+[root@tuki4 ~]# /opt/mellanox/iproute2/sbin/rdma  dev  set mpi_0 name mlx5_0
+[root@tuki4 ~]# ibv_devinfo  | grep hca
+hca_id: mlx5_0
+hca_id: mlx5_1
+
+
+
+原理参考：
+https://github.com/linux-rdma/rdma-core/blob/master/Documentation/udev.md
