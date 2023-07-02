@@ -1,20 +1,13 @@
 
-/usr/lib/udev/rules.d/60-rdma-persistent-naming.rules
-/etc/udev/rules.d/
+IB和RoCE网卡都有mlx5_x命名的设备给RDMA verbs使用，比如执行ibv_devinfo，ibstat或者其他verbs应用，会看到mlx5_0，mlx5_1类似这些设备，设备名的顺序基于系统配置会有不同。
+命名规则的原理，可以参考如下链接：
+https://github.com/linux-rdma/rdma-core/blob/master/Documentation/udev.md
 
+RDMA设备命名方式一般与一些系统配置相关，如：
+  PCI bus/device/function, like 0000:81:00.1
+  GUID, for example, 248a:0703:009c:01a6
 
-
-RDMA device name is unique identifier used by VERBS to access the device. When running ibv_devinfo, ibstat or other VERBS based application be default if shown as mlx5_0, mlx5_1 and so on.  Each device can be physical of virtual function. The number of devices can vary and depends on the system configuration.
-
-In general, the RDMA device’s name stays the same between the reboots, however, if persistence is critical, for example when running MPI jobs and same device must be used on the command line, or when using SR-IOV and need consistency between RDMA names and PCI devices, it might be necessary to use UDEV to guarantee same layout between the reboots.
-
-RDMA device name can be assigned using multiple distributes. Most important probably are
-
-PCI bus/device/function, like 0000:81:00.1
-GUID, for example, 248a:0703:009c:01a6
-
-For the other distributes, udevadm  command might be used to see all of them
-
+通过udevadm命令可以看到这些相关的影响因素：
 # udevadm info -a /sys/class/infiniband/mlx5_0
 
 …
@@ -32,35 +25,33 @@ For the other distributes, udevadm  command might be used to see all of them
     ATTR{node_type}=="1: CA"
     ATTR{reg_pages}=="0"
 …
-There is much more output from the command. Be sure to check it as well.
+等等
 
-To implement the change, follow the procedure bellow. Here we set device with default name “mlx5_0” located on PCI BDF 0000:81:00.0 to be “mpi_0”
+正常来讲RDMA设备名是重启之后不会变化的，但是如果真的是要确保RDMA设备名不发生变化，或者使用SRIOV的设备需要RDMA的设备名和PCIE设备有明确的对应，就需要使用UDEV来确保这一点
 
-Copy the file /usr/lib/udev/rules.d/60-rdma-persistent-naming.rules to /etc/udev/rules.d directory
+
+命名规则：
+/usr/lib/udev/rules.d/60-rdma-persistent-naming.rules
+/etc/udev/rules.d/
+
+可以通过udev修改命名规则的方式来设置这个缺省的mlx设备号
+比如用如下命令：把rdma命名规则的文件/usr/lib/udev/rules.d/60-rdma-persistent-naming.rules拷贝到/etc/udev/rules.d目录
 
 #cp /usr/lib/udev/rules.d/60-rdma-persistent-naming.rules  /etc/udev/rules.d/
 
-Using, for example PCI attribute, assign a desired name to a device by adding or editing existing line:
-
+然后可以使用相关属性来给对应的设备命名，如下是一个使用pcie地址命名的规则例子：
 ACTION=="add", KERNELS=="0000:81:00.0", SUBSYSTEM=="infiniband", PROGRAM="rdma_rename %k NAME_FIXED mpi_0"
 
+上面这行这就是把pcie地址为81：00.0的设备命名为mpi_0
 
-Reload udev database
+然后Reload udev database
 
 #udevamd control -R
+然后重启驱动或者重启服务器
+#/etc/init.d/openibd restart
 
-Restart openibd service or restart the host
-Validate the change
-
-#ibv_devinfo |grep hca
-
-Or use udevamd to review new device
-
-#udevadm info -a /sys/class/infiniband/mpi_0 | head -n 10
-
-
-[root@tuki4 ~]# udevadm info -a /sys/class/infiniband/mpi_0 | head -n 20
-
+通过以下ib_vdevinfo或者udevadmin看看名字是否变了
+#udevadm info -a /sys/class/infiniband/mpi_0 | head -n 20
 …
 
   looking at device '/devices/pci0000:80/0000:80:03.0/0000:81:00.0/infiniband/mpi_0':
@@ -79,17 +70,12 @@ Or use udevamd to review new device
 
 …
 
-
-The other to change name is to use /opt/mellanox/iproute2/sbin/rdma binary to set it manually. It can be used via bash script, for example. Be sure that nothing is using the device during the rename process.
-
-In the command line bellow, device mpi_0 renamed back to mlx5_0
-
+此外，也可以通过/opt/mellanox/iproute2/sbin/rdma命令来手动设置
 [root@tuki4 ~]# /opt/mellanox/iproute2/sbin/rdma  dev  set mpi_0 name mlx5_0
 [root@tuki4 ~]# ibv_devinfo  | grep hca
 hca_id: mlx5_0
 hca_id: mlx5_1
 
+但注意由于手动设置重启就会被冲掉，所以如果要persistent要把它加到一些启动脚本中，并且要保证设备在重命名过程中没有被使用。
+所以整体来讲还是建议用udev的方式来做
 
-
-原理参考：
-https://github.com/linux-rdma/rdma-core/blob/master/Documentation/udev.md
