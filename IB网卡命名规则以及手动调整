@@ -46,7 +46,7 @@ ACTION=="add", KERNELS=="0000:81:00.0", SUBSYSTEM=="infiniband", PROGRAM="rdma_r
 
 然后Reload udev database
 
-#udevamd control -R
+#udevadm control -R
 然后重启驱动或者重启服务器
 #/etc/init.d/openibd restart
 
