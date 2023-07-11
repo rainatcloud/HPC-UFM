@@ -133,6 +133,7 @@ mpirun --allow-run-as-root --np 2 -H 172.21.10.41,172.21.10.21  -x NCCL_IB_HCA=m
 #1.一定要保证服务器之间有免密钥登录
 #2. 所有服务器都要安装OpenMPI, NCCL, nccl-test
 #3. 保证IB网络是通的，网卡号一致
+#4  容器中，MPI需要保证ssh是安装支持了的
 
 
 
