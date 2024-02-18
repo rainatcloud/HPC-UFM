@@ -1,0 +1,7 @@
+
+# seperate NCCL debug file
+NCCL_DEBUG_FILE=nccl_log.%h.%p.txt
+
+# debug hanging issue
+NCCL_DEBUG_SUBSYS=INIT,ENV,COLL
+NCCL_DEBUG="TRACE"
