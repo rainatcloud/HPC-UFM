@@ -4,4 +4,10 @@ NCCL_DEBUG_FILE=nccl_log.%h.%p.txt
 
 # debug hanging issue
 NCCL_DEBUG_SUBSYS=INIT,ENV,COLL
-NCCL_DEBUG="TRACE"
+
+# for issues with different kind of nodes and buffer size
+# NCCL针对不同服务器可能会做不同的tuning decisions，导致ALGO/PROTO的转换点在不同的rank上不同，打开如下debug来查看
+NCCL_DEBUG_SUBSYS=INIT,ENV,GRAPH,TUNING
+# 也有可能是在GDR的时候选择了不同的NIC导致
+#可以通过强制设置ALGO和PROTO来排除该类问题
+NCCL_ALGO=RING/TREE NCCL_PROTO=LL128/SIMPLE
